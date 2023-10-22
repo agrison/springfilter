@@ -7,13 +7,20 @@ import com.turkraft.springfilter.parser.node.InputNode;
 import com.turkraft.springfilter.transformer.FilterExpressionTransformer;
 import jakarta.persistence.criteria.Expression;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Note: the behavior of this operation might differ between different SQL dialects.
  */
 @Component
 public class LikeOperationExpressionProcessor implements
-    FilterInfixOperationProcessor<FilterExpressionTransformer, Expression<?>> {
+    FilterInfixOperationProcessor<FilterExpressionTransformer, Expression<?>>,
+    LikeExpressionProcessor {
+  private final Character escapeCharacter;
+
+  public LikeOperationExpressionProcessor(@Value("${springfilter.jpa-like-escape-character:#{null}}") Character escapeCharacter) {
+    this.escapeCharacter = escapeCharacter;
+  }
 
   @Override
   public Class<FilterExpressionTransformer> getTransformerType() {
@@ -31,9 +38,11 @@ public class LikeOperationExpressionProcessor implements
     transformer.registerTargetType(source, Boolean.class);
     transformer.registerTargetType(source.getLeft(), String.class);
     transformer.registerTargetType(source.getRight(), String.class);
-    return transformer.getCriteriaBuilder()
-        .like((Expression<String>) transformer.transform(source.getLeft()),
-            getLikePatternExpression(transformer, source.getRight()));
+
+    return like(transformer.getCriteriaBuilder(),
+            (Expression<String>) transformer.transform(source.getLeft()),
+            getLikePatternExpression(transformer, source.getRight()),
+            escapeCharacter);
   }
 
   @SuppressWarnings("unchecked")
