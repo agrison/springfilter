@@ -9,9 +9,9 @@ interface LikeExpressionProcessor {
   default Predicate like(CriteriaBuilder builder, Expression<String> left,
                        Expression<String> pattern, @Nullable Character escapeCharacter) {
     if (escapeCharacter == null) {
-      return builder.like(left, pattern); // this is the current way of doing
+      return builder.like(left, pattern);
     } else {
-      return builder.like(left, pattern, escapeCharacter); // providing a specific escape character
+      return builder.like(left, pattern, escapeCharacter);
     }
   }
 }
